@@ -1,0 +1,8 @@
+{
+	"name": "ISO8601-ish Clock",
+	"description": "Overrides Gnome's clock format to `YYYY-MM-DD HH:MM` or `YYYY-MM-DD HH:MM:SS`, depending on show-clock-seconds setting.",
+	"shell-version": ["45"],
+	"url": "https://gitlab.com/S410/iso8601ish",
+	"uuid": "iso8601ish@S410",
+	"version": 1
+}
