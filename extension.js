@@ -28,14 +28,20 @@ export default class IsoClock extends Extension {
 		];
 
 		const override = () => {
+			// Don't do anything if the clock label hasn't actually changed
+			if (this.new_clock == this.label.get_text()) {
+				return;
+			}
+
 			const now = GLib.DateTime.new_now_local();
 
 			// Pick a format that respects user's setting
 			const show_seconds =
 				gnome_settings.get_boolean("clock-show-seconds");
 
-			const newTime = now.format(formats[Number(show_seconds)]);
-			this.label.set_text(newTime);
+			this.new_clock = now.format(formats[Number(show_seconds)]);
+			this.default_clock = this.label.get_text();
+			this.label.set_text(this.new_clock);
 		};
 
 		this.handlerid = this.label.connect("notify::text", override);
@@ -46,6 +52,12 @@ export default class IsoClock extends Extension {
 		if (this.handlerid) {
 			this.label.disconnect(this.handlerid);
 			this.handlerid = null;
+
+			this.label.set_text(this.default_clock);
+			this.label = null;
+
+			this.new_clock = null;
+			this.default_clock = null;
 		}
 	}
 }
