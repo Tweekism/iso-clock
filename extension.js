@@ -23,8 +23,14 @@ export default class IsoClock extends Extension {
 		const gnomeSettings = Gio.Settings.new("org.gnome.desktop.interface");
 
 		const formats = [
-			"%Y-%m-%d %H:%M", // No seconds
-			"%Y-%m-%d %H:%M:%S", // Seconds
+			"%H:%M",
+			"%Y-%m-%d %H:%M",
+			"%H:%M:%S",
+			"%Y-%m-%d %H:%M:%S",
+			" W%V-%u %H:%M",
+			"%Y-%m-%d  W%V-%u %H:%M",
+			" W%V-%u %H:%M:%S",
+			"%Y-%m-%d  W%V-%u %H:%M:%S",
 		];
 
 		const override = () => {
@@ -35,10 +41,13 @@ export default class IsoClock extends Extension {
 
 			const now = GLib.DateTime.new_now_local();
 
-			// Pick a format that respects user's setting
-			const showSeconds = gnomeSettings.get_boolean("clock-show-seconds");
+			const d = gnomeSettings.get_boolean("clock-show-date");
+			const s = gnomeSettings.get_boolean("clock-show-seconds");
+			const w = gnomeSettings.get_boolean("clock-show-weekday");
 
-			this.newClock = now.format(formats[Number(showSeconds)]);
+			const format = (d << 0) | (s << 1) | (w << 2);
+
+			this.newClock = now.format(formats[format]);
 			this.defaultClock = this.label.get_text();
 			this.label.set_text(this.newClock);
 		};
