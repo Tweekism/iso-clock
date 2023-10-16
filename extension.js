@@ -20,7 +20,7 @@ export default class IsoClock extends Extension {
 			return;
 		}
 
-		const gnome_settings = Gio.Settings.new("org.gnome.desktop.interface");
+		const gnomeSettings = Gio.Settings.new("org.gnome.desktop.interface");
 
 		const formats = [
 			"%Y-%m-%d %H:%M", // No seconds
@@ -29,19 +29,18 @@ export default class IsoClock extends Extension {
 
 		const override = () => {
 			// Don't do anything if the clock label hasn't actually changed
-			if (this.new_clock == this.label.get_text()) {
+			if (this.newClock == this.label.get_text()) {
 				return;
 			}
 
 			const now = GLib.DateTime.new_now_local();
 
 			// Pick a format that respects user's setting
-			const show_seconds =
-				gnome_settings.get_boolean("clock-show-seconds");
+			const showSeconds = gnomeSettings.get_boolean("clock-show-seconds");
 
-			this.new_clock = now.format(formats[Number(show_seconds)]);
-			this.default_clock = this.label.get_text();
-			this.label.set_text(this.new_clock);
+			this.newClock = now.format(formats[Number(showSeconds)]);
+			this.defaultClock = this.label.get_text();
+			this.label.set_text(this.newClock);
 		};
 
 		this.handlerid = this.label.connect("notify::text", override);
@@ -53,11 +52,11 @@ export default class IsoClock extends Extension {
 			this.label.disconnect(this.handlerid);
 			this.handlerid = null;
 
-			this.label.set_text(this.default_clock);
+			this.label.set_text(this.defaultClock);
 			this.label = null;
 
-			this.new_clock = null;
-			this.default_clock = null;
+			this.newClock = null;
+			this.defaultClock = null;
 		}
 	}
 }
