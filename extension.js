@@ -8,15 +8,20 @@ export default class IsoClock extends Extension {
 	enable() {
 		const dateMenu = Main.panel.statusArea.dateMenu;
 
-		for (const child of dateMenu.first_child.get_children()) {
-			if (child.style_class == "clock") {
-				this.label = child;
-				break;
-			}
-		}
+		const clockDisplayBox = dateMenu
+			.get_children()
+			.find((x) => x.style_class === "clock-display-box");
+
+		this.label = clockDisplayBox?.get_children().find(
+			(x) =>
+				x.style_class === "clock" &&
+				// Masure sure it's (hopefully) the clock
+				// by checking for "∶" (\u2236) (not ascii ":")
+				x.text?.includes("\u2236")
+		);
 
 		if (!this.label) {
-			print("No clock label? Aboring.");
+			console.error("No clock label? Aboring.");
 			return;
 		}
 
