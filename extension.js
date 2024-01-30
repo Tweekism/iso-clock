@@ -32,10 +32,10 @@ export default class IsoClock extends Extension {
 			"%Y-%m-%d %H:%M",
 			"%H:%M:%S",
 			"%Y-%m-%d %H:%M:%S",
-			"W%V-%u %H:%M",
-			"%Y-%m-%d  W%V-%u %H:%M",
-			"W%V-%u %H:%M:%S",
-			"%Y-%m-%d  W%V-%u %H:%M:%S",
+			"%A   %H:%M",
+			"%A   %Y-%m-%d   %H:%M",
+			"%A   %H:%M:%S",
+			"%A   %Y-%m-%d   %H:%M:%S",
 		];
 
 		const override = () => {
