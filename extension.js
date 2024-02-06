@@ -77,10 +77,14 @@ export default class IsoClock extends Extension {
 	}
 
 	disable() {
+		if (this.calendarHandleID) {
+			this.label.disconnect(this.calendarHandleID);
+			this.calendarHandleID = null;
+                }
+
 		if (this.labelHandleId) {
 			this.label.disconnect(this.labelHandleId);
 			this.labelHandleId = null;
-			this.calendarHandleId = null;
 
 			this.label.set_text(this.defaultClock);
 			this.label = null;
