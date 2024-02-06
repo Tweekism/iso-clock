@@ -1,7 +1,7 @@
 {
 	"name": "ISO8601-ish Clock",
 	"description": "Overrides Gnome's clock format with ISO8601-inspired one.\n\nClock preferences in Date & Time section of Gnome Settings are respected, in a way.\n\"Date\" and \"Seconds\" behave as usual.\n\"Week Day\" inserts ISO Week and Weekday between the date and time. E.g. \"2023-10-16 W42-1 19:45\".",
-	"shell-version": ["45"],
+	"shell-version": ["45", "46"],
 	"url": "https://gitlab.com/S410/iso8601ish",
 	"uuid": "iso8601ish@S410",
 	"version": 4

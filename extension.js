@@ -15,13 +15,13 @@ export default class IsoClock extends Extension {
 		this.label = clockDisplayBox?.get_children().find(
 			(x) =>
 				x.style_class === "clock" &&
-				// Masure sure it's (hopefully) the clock
+				// Make sure it's (hopefully) the clock
 				// by checking for "∶" (\u2236) (not ascii ":")
 				x.text?.includes("\u2236")
 		);
 
 		if (!this.label) {
-			console.error("No clock label? Aboring.");
+			console.error("No clock label? Aborting.");
 			return;
 		}
 
