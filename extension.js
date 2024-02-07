@@ -28,25 +28,6 @@ export default class IsoClock extends Extension {
 		const gnomeSettings = Gio.Settings.new("org.gnome.desktop.interface");
 		const gnomeCalendar = Gio.Settings.new("org.gnome.desktop.calendar");
 
-		const formats = [
-			"%H:%M",
-			"%Y-%m-%d   %H:%M",
-			"%H:%M:%S",
-			"%Y-%m-%d   %H:%M:%S",
-			"%A   %H:%M",
-			"%A   %Y-%m-%d   %H:%M",
-			"%A   %H:%M:%S",
-			"%A   %Y-%m-%d   %H:%M:%S",
-			"W%V-%u   %H:%M",
-			"%Y-%m-%d   W%V-%u   %H:%M",
-			"W%V-%u   %H:%M:%S",
-			"%Y-%m-%d   W%V-%u %H:%M:%S",
-			"%A   W%V-%u   %H:%M",
-			"%A   %Y-%m-%d   W%V-%u   %H:%M",
-			"%A   W%V-%u %H:%M:%S",
-			"%A   %Y-%m-%d   W%V-%u   %H:%M:%S",
-		];
-
 		const override = () => {
 			// Don't do anything if the clock label hasn't actually changed
 			if (this.newClock == this.label.get_text()) {
@@ -55,14 +36,29 @@ export default class IsoClock extends Extension {
 
 			const now = GLib.DateTime.new_now_local();
 
-			const d = gnomeSettings.get_boolean("clock-show-date");
-			const s = gnomeSettings.get_boolean("clock-show-seconds");
-			const w = gnomeSettings.get_boolean("clock-show-weekday");
-			const n = gnomeCalendar.get_boolean("show-weekdate");
+			let day, date, week, time;
 
-			const format = (d << 0) | (s << 1) | (w << 2) | (n << 3);
+			if (gnomeSettings.get_boolean("clock-show-weekday")) {
+				day = "%A"
+			}
 
-			this.newClock = now.format(formats[format]);
+			if (gnomeSettings.get_boolean("clock-show-date")) {
+				date = "%Y-%m-%d";
+			}
+
+			if (gnomeCalendar.get_boolean("show-weekdate")) {
+				week = "W%V-%u"
+			}
+
+			if (gnomeSettings.get_boolean("clock-show-seconds")) {
+				time = "%H:%M:%S";
+			} else {
+				time = "%H:%M";
+			}
+
+			const format = [day, date, week, time].filter(v => v).join("   ");
+
+			this.newClock = now.format(format);
 			this.defaultClock = this.label.get_text();
 			this.label.set_text(this.newClock);
 		};
