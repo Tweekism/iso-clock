@@ -50,10 +50,14 @@ export default class IsoClock extends Extension {
 				week = "W%V-%u"
 			}
 
-			if (gnomeSettings.get_boolean("clock-show-seconds")) {
-				time = "%H:%M:%S";
-			} else {
+			if (gnomeSettings.get_string("clock-format") === '24h') {
 				time = "%H:%M";
+			} else {
+				time = "%I:%M %p";
+			}
+
+			if (gnomeSettings.get_boolean("clock-show-seconds")) {
+				time = time.replace("%M","%M:%S");
 			}
 
 			const format = [day, date, week, time].filter(v => v).join("   ");
