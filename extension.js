@@ -26,17 +26,7 @@ export default class IsoClock extends Extension {
 		}
 
 		const gnomeSettings = Gio.Settings.new("org.gnome.desktop.interface");
-
-		const formats = [
-			"%H:%M",
-			"%Y-%m-%d %H:%M",
-			"%H:%M:%S",
-			"%Y-%m-%d %H:%M:%S",
-			"%A   %H:%M",
-			"%A   %Y-%m-%d   %H:%M",
-			"%A   %H:%M:%S",
-			"%A   %Y-%m-%d   %H:%M:%S",
-		];
+		const gnomeCalendar = Gio.Settings.new("org.gnome.desktop.calendar");
 
 		const override = () => {
 			// Don't do anything if the clock label hasn't actually changed
@@ -46,25 +36,55 @@ export default class IsoClock extends Extension {
 
 			const now = GLib.DateTime.new_now_local();
 
-			const d = gnomeSettings.get_boolean("clock-show-date");
-			const s = gnomeSettings.get_boolean("clock-show-seconds");
-			const w = gnomeSettings.get_boolean("clock-show-weekday");
+			let day, date, week, time;
 
-			const format = (d << 0) | (s << 1) | (w << 2);
+			if (gnomeSettings.get_boolean("clock-show-weekday")) {
+				day = "%A"
+			}
 
-			this.newClock = now.format(formats[format]);
+			if (gnomeSettings.get_boolean("clock-show-date")) {
+				date = "%Y-%m-%d";
+			}
+
+			if (gnomeCalendar.get_boolean("show-weekdate")) {
+				week = "W%V-%u"
+			}
+
+			if (gnomeSettings.get_string("clock-format") === '24h') {
+				time = "%H:%M";
+			} else {
+				time = "%I:%M %p";
+			}
+
+			if (gnomeSettings.get_boolean("clock-show-seconds")) {
+				time = time.replace("%M","%M:%S");
+			}
+
+			const format = [day, date, week, time].filter(v => v).join("   ");
+
+			this.newClock = now.format(format);
 			this.defaultClock = this.label.get_text();
 			this.label.set_text(this.newClock);
 		};
 
-		this.handlerid = this.label.connect("notify::text", override);
+		this.labelHandleId = this.label.connect("notify::text", override);
+		// We also need to know when the "Week Numbers" setting changes
+		// when it does, trigger a refresh by setting clock back to its default value
+		this.calendarHandleId = gnomeCalendar.connect("changed::show-weekdate", () => {
+		    this.label.set_text(this.defaultClock); 
+		})
 		override();
 	}
 
 	disable() {
-		if (this.handlerid) {
-			this.label.disconnect(this.handlerid);
-			this.handlerid = null;
+		if (this.calendarHandleID) {
+			this.label.disconnect(this.calendarHandleID);
+			this.calendarHandleID = null;
+                }
+
+		if (this.labelHandleId) {
+			this.label.disconnect(this.labelHandleId);
+			this.labelHandleId = null;
 
 			this.label.set_text(this.defaultClock);
 			this.label = null;
