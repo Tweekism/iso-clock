@@ -1,8 +1,8 @@
 {
-    "name": "ISO8601-ish-ish Jason's WIP Clock",
-    "description": "Work in progress branch of the upstream 'iso8601ish'",
+    "name": "ISO Clock",
+    "description": "Tweekism's updated ISO Clock based originally on S410's 'iso8601ish' clock extension",
     "shell-version": ["45", "46"],
-    "url": "https://gitlab.com/tweekism/iso-8601-ish-ish-clock",
-    "uuid": "iso8601ish@tweekism",
-    "version": 4
+    "url": "https://github.com/tweekism/iso-clock",
+    "uuid": "iso-clock@tweekism.fairchild.au",
+    "version": 5
 }
