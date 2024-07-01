@@ -1,15 +1,18 @@
-# ISO8601-ish-ish Clock
+# ISO Clock
 
 ![Screenshot](media/screenshot.png)
 
-> For **Gnome 45**
+> For **Gnome 45+**
 
-Forked from the esteemed [S410's original extension](https://extensions.gnome.org/extension/6413/iso8601-ish-clock/)
+This is an update to [S410's original 'iso8601ish'](https://extensions.gnome.org/extension/6413/iso8601-ish-clock/) clock extension
 
-Why -ish? Because using a space instead of a T
+Changes the clock to an ISO date format (yyyy-mm-dd) 
 
-Why -ish-ish? Because it also allows for day of the week and AM / PM display
+This extension uses settings from the Gnome Settings app
 
-This extension uses preferences from the Gnome Settings app
+- Added support for day of the week and AM/PM display based on preferences
 
-![Settings](media/screenshot2-light.png)
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="./media/screenshot2-dark.png">
+  <img src="./media/screenshot2-light.png">
+</picture>
