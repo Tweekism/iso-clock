@@ -1,4 +1,4 @@
-// This extenstion is originally based on S410's ISO8601-ish Clock
+// This extenstion is based on S410's original ISO8601-ish Clock
 // https://gitlab.com/S410/iso8601ish
 
 import { Extension } from "resource:///org/gnome/shell/extensions/extension.js";
@@ -96,12 +96,15 @@ export default class IsoClock extends Extension {
         if (this.labelHandleId) {
             this.label.disconnect(this.labelHandleId);
             this.labelHandleId = null;
-
-            this.label.set_text(this.defaultClock);
-            this.label = null;
-
-            this.newClock = null;
-            this.defaultClock = null;
         }
+
+        if (this.defaultClock) {
+            this.label.set_text(this.defaultClock);
+        }
+
+        this.gnomeCalendar = null
+        this.label = null;
+        this.newClock = null;
+        this.defaultClock = null;
     }
 }
