@@ -16,3 +16,5 @@ This extension uses settings from the Gnome Settings app
   <source media="(prefers-color-scheme: dark)" srcset="./media/screenshot2-dark.png">
   <img src="./media/screenshot2-light.png">
 </picture>
+
+ AAAAAAAAAAAAAAAAAAAAAAHHHHHHHHHHHHHHHHHHH!!!!!
