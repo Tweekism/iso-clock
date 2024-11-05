@@ -1,7 +1,7 @@
 {
     "name": "ISO Clock",
     "description": "Changes the clock to an ISO date format (yyyy-mm-dd)\n\nThis is an update to S410's original 'iso8601ish' clock extension\n\nAdded support for day of the week and AM/PM display depending on what you have set in the Gnome Settings app",
-    "shell-version": ["45", "46"],
+    "shell-version": ["45", "46", "47"],
     "url": "https://github.com/tweekism/iso-clock",
     "uuid": "iso-clock@tweekism.fairchild.au",
     "version": 5
