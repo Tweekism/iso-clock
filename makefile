@@ -1,4 +1,5 @@
 EXTENSION_ZIP = build/iso-clock@tweekism.fairchild.au.shell-extension.zip
+export SHELL_DEBUG = all
 
 $(EXTENSION_ZIP): extension.js metadata.json
 	mkdir -p build
