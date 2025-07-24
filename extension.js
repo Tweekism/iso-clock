@@ -16,11 +16,7 @@ export default class IsoClock extends Extension {
             .find((x) => x.style_class === "clock-display-box");
 
         this.label = clockDisplayBox?.get_children().find(
-            (x) =>
-                x.style_class === "clock" &&
-                // Make sure it's (hopefully) the clock
-                // by checking for "∶" (\u2236) (not ascii ":")
-                x.text?.includes("\u2236")
+            (x) => x.style_class === "clock"
         );
 
         if (!this.label) {
