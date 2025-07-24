@@ -6,6 +6,10 @@ import { Extension } from "resource:///org/gnome/shell/extensions/extension.js";
 import * as Main from "resource:///org/gnome/shell/ui/main.js";
 import GLib from "gi://GLib";
 import Gio from "gi://Gio";
+import St from 'gi://St';
+import Clutter from 'gi://Clutter';
+import Pango from 'gi://Pango';
+
 
 export default class IsoClock extends Extension {
     enable() {
@@ -15,6 +19,13 @@ export default class IsoClock extends Extension {
             .get_children()
             .find((x) => x.style_class === "clock-display-box");
 
+        // WIP: Test adding our own clock label that is easy to clean up
+        this._clockTest = new St.Label({style_class: 'clock'});
+        this._clockTest.clutter_text.y_align = Clutter.ActorAlign.CENTER;
+        this._clockTest.clutter_text.ellipsize = Pango.EllipsizeMode.NONE;
+        this._clockTest.set_text("Hello World");
+        clockDisplayBox.add_child(this._clockTest);
+
         this.label = clockDisplayBox?.get_children().find(
             (x) => x.style_class === "clock"
         );
@@ -23,6 +34,9 @@ export default class IsoClock extends Extension {
             console.error("No clock label? Aborting.");
             return;
         }
+
+        // WIP: More test thingy
+        //TODO: Find way to temp hide the original clock label?
 
         const gnomeSettings = Gio.Settings.new("org.gnome.desktop.interface");
         this.gnomeCalendar = Gio.Settings.new("org.gnome.desktop.calendar");
