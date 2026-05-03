@@ -6,22 +6,33 @@ import { Extension } from "resource:///org/gnome/shell/extensions/extension.js";
 import * as Main from "resource:///org/gnome/shell/ui/main.js";
 import GLib from "gi://GLib";
 import Gio from "gi://Gio";
+import St from 'gi://St';
+import Clutter from 'gi://Clutter';
 
 export default class IsoClock extends Extension {
     enable() {
-        const dateMenu = Main.panel.statusArea.dateMenu;
+        this.originalClockLabel = this.getClockFromPanel(Main.panel)
 
-        const clockDisplayBox = dateMenu
-            .get_children()
-            .find((x) => x.style_class === "clock-display-box");
-
-        this.label = clockDisplayBox?.get_children().find(
-            (x) => x.style_class === "clock"
-        );
-
-        if (!this.label) {
+        if (!this.originalClockLabel) {
             console.error("No clock label? Aborting.");
             return;
+        }
+
+        // Hide the original clock and create our own
+        this.isoClockLabel = new St.Label({
+            style_class: 'clock',
+            text: 'Initializing...',
+            y_align: Clutter.ActorAlign.CENTER
+        });
+
+        this.originalClockLabel.get_parent().add_child(this.isoClockLabel);
+
+        // If Dash to Panel is running, get those clock labels too
+        if (global.dashToPanel) {
+            this.dashToPanelClocks = [];
+            global.dashToPanel.panels.forEach(panel => {
+                this.dashToPanelClocks.push(this.getClockFromPanel(panel));
+            });
         }
 
         const gnomeSettings = Gio.Settings.new("org.gnome.desktop.interface");
@@ -29,7 +40,7 @@ export default class IsoClock extends Extension {
 
         const override = () => {
             // Don't do anything if the clock label hasn't actually changed
-            if (this.newClock == this.label.get_text()) {
+            if (this.isoTimeString == this.originalClockLabel.get_text()) {
                 return;
             }
 
@@ -62,23 +73,31 @@ export default class IsoClock extends Extension {
 
             // Keep a copy of the default clock text so that we can revert it when the
             // extension is disabled
-            this.defaultClock = this.label.get_text();
+            this.defaultTimeString = this.originalClockLabel.get_text();
 
             // Set the clock label to our new custom format
             const now = GLib.DateTime.new_now_local();
-            this.newClock = now.format(format);
-            this.label.set_text(this.newClock);
+            this.isoTimeString = now.format(format);
+            this.originalClockLabel.set_text(this.isoTimeString);
+            this.isoClockLabel.set_text(now.format(format));
+
+            this.dashToPanelClocks.forEach(clock => {
+                if (clock) {
+                    clock.set_text(this.isoTimeString);
+                    clock.hide();
+                }
+            })
         };
 
         // Whenever the clock label updates override with our custom clock format
-        this.labelHandleId = this.label.connect("notify::text", override);
+        this.mainClockHandleId = this.originalClockLabel.connect("notify::text", override);
 
         // We also need to know when the "Week Numbers" setting changes, as week numbers
         // don't appear in the default clock. Trigger a refresh by setting clock back to 
         // its default value. This prevents an edge case where disabling the extension 
         // after a week number setting change causes unexpected behaviour
         this.calendarHandleId = this.gnomeCalendar.connect("changed::show-weekdate", () => {
-            this.label.set_text(this.defaultClock);
+            this.originalClockLabel.set_text(this.defaultTimeString);
         })
         override();
     }
@@ -89,18 +108,31 @@ export default class IsoClock extends Extension {
             this.calendarHandleId = null;
         }
 
-        if (this.labelHandleId) {
-            this.label.disconnect(this.labelHandleId);
-            this.labelHandleId = null;
+        if (this.mainClockHandleId) {
+            this.originalClockLabel.disconnect(this.mainClockHandleId);
+            this.mainClockHandleId = null;
         }
 
-        if (this.defaultClock) {
-            this.label.set_text(this.defaultClock);
+        if (this.defaultTimeString) {
+            this.originalClockLabel.set_text(this.defaultTimeString);
         }
 
         this.gnomeCalendar = null
-        this.label = null;
-        this.newClock = null;
-        this.defaultClock = null;
+        this.originalClockLabel = null;
+        this.isoTimeString = null;
+        this.defaultTimeString = null;
+    }
+
+    getClockFromPanel(panel) {
+        const dateMenu = panel?.statusArea?.dateMenu;
+        if (!dateMenu) return null;
+
+        const clockDisplayBox = dateMenu
+            .get_children()
+            .find((x) => x.style_class === "clock-display-box");
+
+        return clockDisplayBox?.get_children().find(
+            (x) => x.style_class === "clock"
+        ) || null;
     }
 }
