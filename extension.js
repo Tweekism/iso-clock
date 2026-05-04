@@ -129,7 +129,11 @@ export default class IsoClock extends Extension {
         // If Dash to Panel is running, clone those too
         if (global.dashToPanel) {
             global.dashToPanel.panels.forEach(panel => {
-                this.isoClocks.push(this.cloneClock(this.getClockFromPanel(panel)));
+                const clock = this.getClockFromPanel(panel);
+                // If Dash to Panel is re-using the main clock, don't clone it again
+                if (clock !== this.originalClockLabel) {
+                    this.isoClocks.push(this.cloneClock(clock));
+                }
             });
         }
     }
