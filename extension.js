@@ -54,7 +54,6 @@ export default class IsoClock extends Extension {
 
         this.destroyClocks();
 
-        this.mainClock.show();
         this.gnomeCalendar = null
         this.mainClock = null;
     }
@@ -88,6 +87,7 @@ export default class IsoClock extends Extension {
     createClocks() {
         // Hide the original clock and create our own
         this.isoClocks.push(this.cloneClock(this.mainClock));
+        this.mainClock.hide();
 
         // If Dash to Panel is running, clone those too
         if (global.dashToPanel) {
@@ -96,6 +96,7 @@ export default class IsoClock extends Extension {
                 // If Dash to Panel is re-using the main clock, don't clone it again
                 if (clock !== this.mainClock) {
                     this.isoClocks.push(this.cloneClock(clock));
+                    clock.hide();
                 }
             });
         }
@@ -108,6 +109,12 @@ export default class IsoClock extends Extension {
             }
         });
         this.isoClocks = [];
+
+        global.dashToPanel?.panels?.forEach(panel => {
+            this.getClockFromPanel(panel)?.show();
+        });
+
+        this.mainClock.show();
     }
 
     getIsoFormat() {
