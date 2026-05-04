@@ -12,50 +12,20 @@ import Clutter from 'gi://Clutter';
 export default class IsoClock extends Extension {
     enable() {
         this.mainClock = this.getClockFromPanel(Main.panel)
-
         if (!this.mainClock) {
             console.error("No clock label? Aborting.");
             return;
         }
 
+        this.gnomeCalendar = Gio.Settings.new("org.gnome.desktop.calendar");
         this.isoClocks = []
         this.createClocks();
 
-        const gnomeSettings = Gio.Settings.new("org.gnome.desktop.interface");
-        this.gnomeCalendar = Gio.Settings.new("org.gnome.desktop.calendar");
-
         const updateClocks = () => {
-            // Setup the custom clock format based on the clock settings in Gnome Settings
-            let day, date, week, time;
-
-            if (gnomeSettings.get_boolean("clock-show-weekday")) {
-                day = "%A"
-            }
-
-            if (gnomeSettings.get_boolean("clock-show-date")) {
-                date = "%Y-%m-%d";
-            }
-
-            if (this.gnomeCalendar.get_boolean("show-weekdate")) {
-                week = "W%V-%u"
-            }
-
-            if (gnomeSettings.get_string("clock-format") === '24h') {
-                time = "%H:%M";
-            } else {
-                time = "%I:%M %p";
-            }
-
-            if (gnomeSettings.get_boolean("clock-show-seconds")) {
-                time = time.replace("%M","%M:%S");
-            }
-
-            const format = [day, date, week, time].filter(v => v).join("   ");
-
-            // Set the clock label to our new custom format
+            // Set our clock labels to our new custom format
             const now = GLib.DateTime.new_now_local();
             this.isoClocks.forEach(clock => {
-                clock.set_text(now.format(format));
+                clock.set_text(now.format(this.getIsoFormat()));
             });
         };
 
@@ -138,5 +108,36 @@ export default class IsoClock extends Extension {
             }
         });
         this.isoClocks = [];
+    }
+
+    getIsoFormat() {
+        // Setup the custom clock format based on the clock settings in Gnome Settings
+        const gnomeSettings = Gio.Settings.new("org.gnome.desktop.interface");
+
+        let day, date, week, time;
+
+        if (gnomeSettings.get_boolean("clock-show-weekday")) {
+            day = "%A"
+        }
+
+        if (gnomeSettings.get_boolean("clock-show-date")) {
+            date = "%Y-%m-%d";
+        }
+
+        if (this.gnomeCalendar.get_boolean("show-weekdate")) {
+            week = "W%V-%u"
+        }
+
+        if (gnomeSettings.get_string("clock-format") === '24h') {
+            time = "%H:%M";
+        } else {
+            time = "%I:%M %p";
+        }
+
+        if (gnomeSettings.get_boolean("clock-show-seconds")) {
+            time = time.replace("%M","%M:%S");
+        }
+
+        return [day, date, week, time].filter(v => v).join("   ");
     }
 }
