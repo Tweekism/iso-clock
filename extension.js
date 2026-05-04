@@ -19,16 +19,7 @@ export default class IsoClock extends Extension {
         }
 
         this.isoClocks = []
-
-        // Hide the original clock and create our own
-        this.isoClocks.push(this.cloneClock(this.originalClockLabel));
-
-        // If Dash to Panel is running, clone those too
-        if (global.dashToPanel) {
-            global.dashToPanel.panels.forEach(panel => {
-                this.isoClocks.push(this.cloneClock(this.getClockFromPanel(panel)));
-            });
-        }
+        this.createClocks();
 
         const gnomeSettings = Gio.Settings.new("org.gnome.desktop.interface");
         this.gnomeCalendar = Gio.Settings.new("org.gnome.desktop.calendar");
@@ -98,12 +89,7 @@ export default class IsoClock extends Extension {
             this.mainClockHandleId = null;
         }
 
-        this.isoClocks.forEach(clock => {
-            if (clock) {
-                clock.destroy();
-            }
-        });
-        this.isoClocks = [];
+        this.destroyClocks();
 
         this.originalClockLabel.show();
         this.gnomeCalendar = null
@@ -134,5 +120,26 @@ export default class IsoClock extends Extension {
         original.get_parent().insert_child_above(clock, original);
         // original.hide();
         return clock
+    }
+
+    createClocks() {
+        // Hide the original clock and create our own
+        this.isoClocks.push(this.cloneClock(this.originalClockLabel));
+
+        // If Dash to Panel is running, clone those too
+        if (global.dashToPanel) {
+            global.dashToPanel.panels.forEach(panel => {
+                this.isoClocks.push(this.cloneClock(this.getClockFromPanel(panel)));
+            });
+        }
+    }
+
+    destroyClocks() {
+        this.isoClocks.forEach(clock => {
+            if (clock) {
+                clock.destroy();
+            }
+        });
+        this.isoClocks = [];
     }
 }
