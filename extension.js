@@ -18,20 +18,15 @@ export default class IsoClock extends Extension {
             return;
         }
 
+        this.isoClocks = []
+
         // Hide the original clock and create our own
-        this.isoClockLabel = new St.Label({
-            style_class: 'clock',
-            text: 'Initializing...',
-            y_align: Clutter.ActorAlign.CENTER
-        });
+        this.isoClocks.push(this.cloneClock(this.originalClockLabel));
 
-        this.originalClockLabel.get_parent().add_child(this.isoClockLabel);
-
-        // If Dash to Panel is running, get those clock labels too
+        // If Dash to Panel is running, clone those too
         if (global.dashToPanel) {
-            this.dashToPanelClocks = [];
             global.dashToPanel.panels.forEach(panel => {
-                this.dashToPanelClocks.push(this.getClockFromPanel(panel));
+                this.isoClocks.push(this.cloneClock(this.getClockFromPanel(panel)));
             });
         }
 
@@ -71,33 +66,23 @@ export default class IsoClock extends Extension {
 
             const format = [day, date, week, time].filter(v => v).join("   ");
 
-            // Keep a copy of the default clock text so that we can revert it when the
-            // extension is disabled
-            this.defaultTimeString = this.originalClockLabel.get_text();
-
             // Set the clock label to our new custom format
             const now = GLib.DateTime.new_now_local();
-            this.isoTimeString = now.format(format);
-            this.originalClockLabel.set_text(this.isoTimeString);
-            this.isoClockLabel.set_text(now.format(format));
-
-            this.dashToPanelClocks.forEach(clock => {
-                if (clock) {
-                    clock.set_text(this.isoTimeString);
-                    clock.hide();
-                }
-            })
+            this.isoClocks.forEach(clock => {
+                clock.set_text(now.format(format));
+            });
         };
 
         // Whenever the clock label updates override with our custom clock format
         this.mainClockHandleId = this.originalClockLabel.connect("notify::text", override);
 
+        // TODO: Update this comment, as it's no longer true
         // We also need to know when the "Week Numbers" setting changes, as week numbers
         // don't appear in the default clock. Trigger a refresh by setting clock back to 
         // its default value. This prevents an edge case where disabling the extension 
         // after a week number setting change causes unexpected behaviour
         this.calendarHandleId = this.gnomeCalendar.connect("changed::show-weekdate", () => {
-            this.originalClockLabel.set_text(this.defaultTimeString);
+            override();
         })
         override();
     }
@@ -113,14 +98,16 @@ export default class IsoClock extends Extension {
             this.mainClockHandleId = null;
         }
 
-        if (this.defaultTimeString) {
-            this.originalClockLabel.set_text(this.defaultTimeString);
-        }
+        this.isoClocks.forEach(clock => {
+            if (clock) {
+                clock.destroy();
+            }
+        });
+        this.isoClocks = [];
 
+        this.originalClockLabel.show();
         this.gnomeCalendar = null
         this.originalClockLabel = null;
-        this.isoTimeString = null;
-        this.defaultTimeString = null;
     }
 
     getClockFromPanel(panel) {
@@ -134,5 +121,18 @@ export default class IsoClock extends Extension {
         return clockDisplayBox?.get_children().find(
             (x) => x.style_class === "clock"
         ) || null;
+    }
+
+    cloneClock(original) {
+        const clock = new St.Label({
+            style_class: 'clock',
+            text: 'Initializing...',
+            y_expand: 0,
+            y_align: 0
+        });
+        clock.get_clutter_text().set_y_align(Clutter.ActorAlign.CENTER);
+        original.get_parent().insert_child_above(clock, original);
+        // original.hide();
+        return clock
     }
 }
