@@ -11,9 +11,9 @@ import Clutter from 'gi://Clutter';
 
 export default class IsoClock extends Extension {
     enable() {
-        this.originalClockLabel = this.getClockFromPanel(Main.panel)
+        this.mainClock = this.getClockFromPanel(Main.panel)
 
-        if (!this.originalClockLabel) {
+        if (!this.mainClock) {
             console.error("No clock label? Aborting.");
             return;
         }
@@ -24,12 +24,7 @@ export default class IsoClock extends Extension {
         const gnomeSettings = Gio.Settings.new("org.gnome.desktop.interface");
         this.gnomeCalendar = Gio.Settings.new("org.gnome.desktop.calendar");
 
-        const override = () => {
-            // Don't do anything if the clock label hasn't actually changed
-            if (this.isoTimeString == this.originalClockLabel.get_text()) {
-                return;
-            }
-
+        const updateClocks = () => {
             // Setup the custom clock format based on the clock settings in Gnome Settings
             let day, date, week, time;
 
@@ -64,18 +59,16 @@ export default class IsoClock extends Extension {
             });
         };
 
-        // Whenever the clock label updates override with our custom clock format
-        this.mainClockHandleId = this.originalClockLabel.connect("notify::text", override);
+        // Whenever the main clock label changes, update all our clocks
+        this.mainClockHandleId = this.mainClock.connect("notify::text", updateClocks);
 
-        // TODO: Update this comment, as it's no longer true
-        // We also need to know when the "Week Numbers" setting changes, as week numbers
-        // don't appear in the default clock. Trigger a refresh by setting clock back to 
-        // its default value. This prevents an edge case where disabling the extension 
-        // after a week number setting change causes unexpected behaviour
+        // Also update clocks when the "Week Numbers" setting changes. Week numbers
+        // don't appear in the default clock, so we'll watch the Gnome Settings
+        // handle for that.
         this.calendarHandleId = this.gnomeCalendar.connect("changed::show-weekdate", () => {
-            override();
+            updateClocks();
         })
-        override();
+        updateClocks();
     }
 
     disable() {
@@ -85,15 +78,15 @@ export default class IsoClock extends Extension {
         }
 
         if (this.mainClockHandleId) {
-            this.originalClockLabel.disconnect(this.mainClockHandleId);
+            this.mainClock.disconnect(this.mainClockHandleId);
             this.mainClockHandleId = null;
         }
 
         this.destroyClocks();
 
-        this.originalClockLabel.show();
+        this.mainClock.show();
         this.gnomeCalendar = null
-        this.originalClockLabel = null;
+        this.mainClock = null;
     }
 
     getClockFromPanel(panel) {
@@ -124,14 +117,14 @@ export default class IsoClock extends Extension {
 
     createClocks() {
         // Hide the original clock and create our own
-        this.isoClocks.push(this.cloneClock(this.originalClockLabel));
+        this.isoClocks.push(this.cloneClock(this.mainClock));
 
         // If Dash to Panel is running, clone those too
         if (global.dashToPanel) {
             global.dashToPanel.panels.forEach(panel => {
                 const clock = this.getClockFromPanel(panel);
                 // If Dash to Panel is re-using the main clock, don't clone it again
-                if (clock !== this.originalClockLabel) {
+                if (clock !== this.mainClock) {
                     this.isoClocks.push(this.cloneClock(clock));
                 }
             });
