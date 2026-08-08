@@ -93,6 +93,9 @@ export default class IsoClock extends Extension {
         if (global.dashToPanel) {
             global.dashToPanel.panels.forEach(panel => {
                 const clock = this.getClockFromPanel(panel);
+                if (panel.getOrientation() === 'vertical') {
+                    return
+                }
                 // If Dash to Panel is re-using the main clock, don't clone it again
                 if (clock !== this.mainClock) {
                     this.isoClocks.push(this.cloneClock(clock));
