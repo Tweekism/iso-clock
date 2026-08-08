@@ -21,24 +21,30 @@ export default class IsoClock extends Extension {
         this.isoClocks = []
         this.createClocks();
 
-        const updateClocks = () => {
-            // Set our clock labels to our new custom format
-            const now = GLib.DateTime.new_now_local();
-            this.isoClocks.forEach(clock => {
-                clock.set_text(now.format(this.getIsoFormat()));
-            });
-        };
-
         // Whenever the main clock label changes, update all our clocks
-        this.mainClockHandleId = this.mainClock.connect("notify::text", updateClocks);
+        this.mainClockHandleId = this.mainClock.connect("notify::text", () => {
+            this.updateClocks();
+        });
 
         // Also update clocks when the "Week Numbers" setting changes. Week numbers
         // don't appear in the default clock, so we'll watch the Gnome Settings
         // handle for that.
         this.calendarHandleId = this.gnomeCalendar.connect("changed::show-weekdate", () => {
-            updateClocks();
+            this.updateClocks();
         })
-        updateClocks();
+
+        // Dash to Panel re-creates its panels on layout changes (monitors,
+        // position, orientation...), so watch for that and re-clone the clocks
+        // on the new panels.
+        this.dashToPanelHandleId = null;
+        if (global.dashToPanel) {
+            this.dashToPanelHandleId = global.dashToPanel.connect("panels-created", () => {
+                this.destroyClocks();
+                this.createClocks();
+                this.updateClocks();
+            });
+        }
+        this.updateClocks();
     }
 
     disable() {
@@ -50,6 +56,11 @@ export default class IsoClock extends Extension {
         if (this.mainClockHandleId) {
             this.mainClock.disconnect(this.mainClockHandleId);
             this.mainClockHandleId = null;
+        }
+
+        if (this.dashToPanelHandleId) {
+            global.dashToPanel.disconnect(this.dashToPanelHandleId);
+            this.dashToPanelHandleId = null;
         }
 
         this.destroyClocks();
@@ -103,6 +114,14 @@ export default class IsoClock extends Extension {
                 }
             });
         }
+    }
+
+    updateClocks() {
+        // Set our clock labels to our new custom format
+        const now = GLib.DateTime.new_now_local();
+        this.isoClocks.forEach(clock => {
+            clock.set_text(now.format(this.getIsoFormat()));
+        });
     }
 
     destroyClocks() {
