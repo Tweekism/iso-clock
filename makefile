@@ -12,5 +12,5 @@ clean:
 	rm -rf build/
 
 run: install
-	dbus-run-session -- gnome-shell --nested --wayland
+	dbus-run-session -- gnome-shell
 
