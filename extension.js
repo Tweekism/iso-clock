@@ -7,15 +7,15 @@ import * as Main from "resource:///org/gnome/shell/ui/main.js";
 import { ExtensionState } from "resource:///org/gnome/shell/misc/extensionUtils.js";
 import GLib from "gi://GLib";
 import Gio from "gi://Gio";
-import St from 'gi://St';
-import Clutter from 'gi://Clutter';
+import St from "gi://St";
+import Clutter from "gi://Clutter";
 
 const DASH_TO_PANEL_UUID = "dash-to-panel@jderose9.github.com";
 
 export default class IsoClock extends Extension {
     enable() {
         this.isoClocks = [];
-        this.mainClock = this.getClockFromPanel(Main.panel)
+        this.mainClock = this.getClockFromPanel(Main.panel);
         if (!this.mainClock) {
             console.error("No clock label? Aborting.");
             return;
@@ -36,7 +36,7 @@ export default class IsoClock extends Extension {
         // handle for that.
         this.calendarHandleId = this.gnomeCalendar.connect("changed::show-weekdate", () => {
             this.updateClocks();
-        })
+        });
 
         // Watch for Dash to Panel's state so we can react when it is enabled or
         // disabled while our extension is running.
@@ -44,20 +44,16 @@ export default class IsoClock extends Extension {
         this.extensionStateHandleId = Main.extensionManager.connect(
             "extension-state-changed",
             (manager, extension) => {
-                if (extension.uuid !== DASH_TO_PANEL_UUID)
-                    return;
+                if (extension.uuid !== DASH_TO_PANEL_UUID) return;
 
-                if (extension.state === ExtensionState.ACTIVE)
-                    this.onDashToPanelEnabled();
-                else
-                    this.onDashToPanelDisabled();
+                if (extension.state === ExtensionState.ACTIVE) this.onDashToPanelEnabled();
+                else this.onDashToPanelDisabled();
             }
         );
 
         // If Dash to Panel is already running, connect to it now
         const dashToPanel = Main.extensionManager.lookup(DASH_TO_PANEL_UUID);
-        if (dashToPanel?.state === ExtensionState.ACTIVE)
-            this.onDashToPanelEnabled();
+        if (dashToPanel?.state === ExtensionState.ACTIVE) this.onDashToPanelEnabled();
 
         this.updateClocks();
     }
@@ -85,7 +81,7 @@ export default class IsoClock extends Extension {
 
         this.destroyClocks();
 
-        this.gnomeCalendar = null
+        this.gnomeCalendar = null;
         this.gnomeSettings = null;
         this.mainClock = null;
     }
@@ -96,24 +92,22 @@ export default class IsoClock extends Extension {
 
         const clockDisplayBox = dateMenu
             .get_children()
-            .find((x) => x.style_class === "clock-display-box");
+            .find(x => x.style_class === "clock-display-box");
 
-        return clockDisplayBox?.get_children().find(
-            (x) => x.style_class === "clock"
-        ) || null;
+        return clockDisplayBox?.get_children().find(x => x.style_class === "clock") || null;
     }
 
     cloneClock(original) {
         const clock = new St.Label({
-            style_class: 'clock',
-            text: 'Initializing...',
+            style_class: "clock",
+            text: "Initializing...",
             y_expand: 0,
-            y_align: 0
+            y_align: 0,
         });
         clock.get_clutter_text().set_y_align(Clutter.ActorAlign.CENTER);
         original.get_parent().insert_child_above(clock, original);
         // original.hide();
-        return clock
+        return clock;
     }
 
     // Create a cloned clock for the panel, hiding the original. The original
@@ -125,7 +119,7 @@ export default class IsoClock extends Extension {
 
         // Don't clone the same clock twice, e.g. when Dash to Panel re-uses
         // the main panel's clock
-        if (this.isoClocks.some((entry) => entry.original === original)) return;
+        if (this.isoClocks.some(entry => entry.original === original)) return;
 
         const clock = this.cloneClock(original);
         original.hide();
@@ -182,8 +176,8 @@ export default class IsoClock extends Extension {
 
     createDashToPanelClocks() {
         global.dashToPanel.panels.forEach(panel => {
-            if (panel.getOrientation() === 'vertical') {
-                return
+            if (panel.getOrientation() === "vertical") {
+                return;
             }
             this.addClockForPanel(panel);
         });
@@ -210,7 +204,7 @@ export default class IsoClock extends Extension {
         let day, date, week, time;
 
         if (this.gnomeSettings.get_boolean("clock-show-weekday")) {
-            day = "%A"
+            day = "%A";
         }
 
         if (this.gnomeSettings.get_boolean("clock-show-date")) {
@@ -218,17 +212,17 @@ export default class IsoClock extends Extension {
         }
 
         if (this.gnomeCalendar.get_boolean("show-weekdate")) {
-            week = "W%V-%u"
+            week = "W%V-%u";
         }
 
-        if (this.gnomeSettings.get_string("clock-format") === '24h') {
+        if (this.gnomeSettings.get_string("clock-format") === "24h") {
             time = "%H:%M";
         } else {
             time = "%I:%M %p";
         }
 
         if (this.gnomeSettings.get_boolean("clock-show-seconds")) {
-            time = time.replace("%M","%M:%S");
+            time = time.replace("%M", "%M:%S");
         }
 
         return [day, date, week, time].filter(v => v).join("   ");
